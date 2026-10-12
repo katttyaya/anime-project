@@ -16,11 +16,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.animeproject.ui.screens.AnimeDetailsScreen
-import com.example.animeproject.ui.screens.AnimeListScreen
-import com.example.animeproject.ui.screens.ProfileScreen
+import com.example.animeproject.presentation.screens.AnimeDetailsScreen
+import com.example.animeproject.presentation.screens.AnimeListScreen
+import com.example.animeproject.presentation.screens.ProfileScreen
+import com.example.animeproject.presentation.viewmodel.AnimeViewModel
 import com.example.animeproject.ui.theme.AnimeProjectTheme
-import com.example.animeproject.ui.theme.viewmodel.AnimeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
