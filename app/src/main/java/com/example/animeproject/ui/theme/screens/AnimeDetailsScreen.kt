@@ -8,28 +8,35 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.animeproject.data.Anime
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.animeproject.ui.theme.viewmodel.AnimeDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeDetailsScreen(
-    anime: Anime?,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: AnimeDetailsViewModel = viewModel()
 ) {
+    val anime by viewModel.anime.collectAsState()
+
     if (anime == null) {
         Box(modifier = Modifier.fillMaxSize()) { Text("Аниме не найдено") }
         return
     }
 
+    val currentAnime = anime!!
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(anime.title) },
+                title = { Text(currentAnime.title) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Назад")
@@ -45,7 +52,7 @@ fun AnimeDetailsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Image(
-                painter = painterResource(id = anime.posterResId),
+                painter = painterResource(id = currentAnime.posterResId),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -54,19 +61,19 @@ fun AnimeDetailsScreen(
             )
 
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = anime.title, style = MaterialTheme.typography.headlineMedium)
+                Text(text = currentAnime.title, style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    InfoBox(label = "Рейтинг", value = anime.rating)
-                    InfoBox(label = "Эпизоды", value = anime.episodes.toString())
-                    InfoBox(label = "Статус", value = anime.status)
+                    InfoBox(label = "Рейтинг", value = currentAnime.rating)
+                    InfoBox(label = "Эпизоды", value = currentAnime.episodes.toString())
+                    InfoBox(label = "Статус", value = currentAnime.status)
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(text = "Описание", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = anime.synopsis, style = MaterialTheme.typography.bodyLarge)
+                Text(text = currentAnime.synopsis, style = MaterialTheme.typography.bodyLarge)
             }
         }
     }

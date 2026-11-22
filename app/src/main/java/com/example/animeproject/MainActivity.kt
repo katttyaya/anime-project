@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,7 +19,6 @@ import com.example.animeproject.ui.screens.AnimeDetailsScreen
 import com.example.animeproject.ui.screens.AnimeListScreen
 import com.example.animeproject.ui.screens.ProfileScreen
 import com.example.animeproject.ui.theme.AnimeProjectTheme
-import com.example.animeproject.ui.theme.viewmodel.AnimeViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +39,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    val viewModel: AnimeViewModel = viewModel()
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -79,7 +76,6 @@ fun MainApp() {
         ) {
             composable("list") {
                 AnimeListScreen(
-                    viewModel = viewModel,
                     onAnimeClick = { animeId ->
                         navController.navigate("details/$animeId")
                     }
@@ -89,12 +85,8 @@ fun MainApp() {
             composable(
                 route = "details/{animeId}",
                 arguments = listOf(navArgument("animeId") { defaultValue = "" })
-            ) { backStackEntry ->
-                val animeId = backStackEntry.arguments?.getString("animeId") ?: ""
-                val anime = viewModel.getAnimeById(animeId)
-
+            ) {
                 AnimeDetailsScreen(
-                    anime = anime,
                     onBackClick = { navController.popBackStack() }
                 )
             }

@@ -14,15 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.animeproject.data.Anime
-import com.example.animeproject.ui.theme.viewmodel.AnimeViewModel
-import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.animeproject.ui.theme.viewmodel.AnimeListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeListScreen(
-    viewModel: AnimeViewModel,
-    onAnimeClick: (String) -> Unit
+    onAnimeClick: (String) -> Unit,
+    viewModel: AnimeListViewModel = viewModel()
 ) {
     val animeList by viewModel.animeList.collectAsState()
 
