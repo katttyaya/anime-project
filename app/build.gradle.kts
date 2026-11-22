@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -35,6 +36,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.generateKotlin", "true")
+}
+
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -65,4 +70,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
     releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    implementation(libs.datastore.preferences)
 }

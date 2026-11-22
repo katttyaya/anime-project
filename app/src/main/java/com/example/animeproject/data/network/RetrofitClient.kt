@@ -10,8 +10,10 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     private const val BASE_URL = "https://kitsu.app/"
 
-    fun create(context: Context): AnimeApiService {
-        val chuckerInterceptor = ChuckerInterceptor.Builder(context).build()
+    private lateinit var appContext: Context
+
+    val api: AnimeApiService by lazy {
+        val chuckerInterceptor = ChuckerInterceptor.Builder(appContext).build()
 
         val client = OkHttpClient.Builder()
             .addInterceptor(chuckerInterceptor)
@@ -19,11 +21,15 @@ object RetrofitClient {
             .readTimeout(15, TimeUnit.SECONDS)
             .build()
 
-        return Retrofit.Builder()
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AnimeApiService::class.java)
+    }
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
     }
 }
