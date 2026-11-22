@@ -6,21 +6,21 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.animeproject.data.network.RetrofitClient
-import com.example.animeproject.data.repository.AnimeRepositoryImpl
-import com.example.animeproject.presentation.screens.AnimeDetailsScreen
-import com.example.animeproject.presentation.screens.AnimeListScreen
-import com.example.animeproject.presentation.screens.ProfileScreen
-import com.example.animeproject.presentation.viewmodel.AnimeViewModelFactory
+import com.example.animeproject.presentation.screens.*
+import com.example.animeproject.presentation.viewmodel.*
 import com.example.animeproject.ui.theme.AnimeProjectTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,10 +29,7 @@ class MainActivity : ComponentActivity() {
         RetrofitClient.init(this)
         setContent {
             AnimeProjectTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     MainApp()
                 }
             }
@@ -43,36 +40,55 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val container = remember { (context.applicationContext as AnimeApplication).container }
+    val factory = remember { AnimeViewModelFactory(container) }
+    val hasFilters by container.filterCache.hasActiveFilters.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
-
-    val factory = remember {
-        val repository = AnimeRepositoryImpl(RetrofitClient.api)
-        AnimeViewModelFactory(repository)
-    }
 
     Scaffold(
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Home, contentDescription = "Список") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Список") },
                     label = { Text("Список") },
                     selected = selectedTab == 0,
                     onClick = {
                         selectedTab = 0
-                        navController.navigate("list") {
-                            popUpTo("list") { inclusive = true }
-                        }
+                        navController.navigate("list") { popUpTo("list") { inclusive = true } }
                     }
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Person, contentDescription = "Профиль") },
-                    label = { Text("Профиль") },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Избранное") },
+                    label = { Text("Избранное") },
                     selected = selectedTab == 1,
                     onClick = {
                         selectedTab = 1
-                        navController.navigate("profile") {
-                            popUpTo("profile") { inclusive = true }
+                        navController.navigate("favorites") { popUpTo("favorites") { inclusive = true } }
+                    }
+                )
+                NavigationBarItem(
+                    icon = {
+                        BadgedBox({
+                            if (hasFilters) Badge { Text("·") }
+                        }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Настройки")
                         }
+                    },
+                    label = { Text("Настройки") },
+                    selected = selectedTab == 2,
+                    onClick = {
+                        selectedTab = 2
+                        navController.navigate("settings") { popUpTo("settings") { inclusive = true } }
+                    }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Профиль") },
+                    label = { Text("Профиль") },
+                    selected = selectedTab == 3,
+                    onClick = {
+                        selectedTab = 3
+                        navController.navigate("profile") { popUpTo("profile") { inclusive = true } }
                     }
                 )
             }
@@ -84,26 +100,29 @@ fun MainApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("list") {
-                AnimeListScreen(
-                    factory = factory,
-                    onAnimeClick = { animeId ->
-                        navController.navigate("details/$animeId")
-                    }
-                )
+                val vm: AnimeListViewModel = viewModel(factory = factory)
+                AnimeListScreen(vm, { navController.navigate("details/$it") })
             }
-
-            composable(
-                route = "details/{animeId}",
-                arguments = listOf(navArgument("animeId") { defaultValue = "" })
-            ) {
-                AnimeDetailsScreen(
-                    factory = factory,
-                    onBackClick = { navController.popBackStack() }
-                )
+            composable("favorites") {
+                val vm: FavoritesViewModel = viewModel(factory = factory)
+                FavoritesScreen(vm, { navController.navigate("details/$it") })
             }
-
+            composable("settings") {
+                val vm: SettingsViewModel = viewModel(factory = factory)
+                SettingsScreen(vm, { navController.popBackStack() })
+            }
             composable("profile") {
                 ProfileScreen()
+            }
+            composable(
+                "details/{animeId}",
+                arguments = listOf(navArgument("animeId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val animeId = backStackEntry.arguments?.getString("animeId") ?: ""
+                val vm: AnimeDetailsViewModel = viewModel(
+                    factory = AnimeViewModelFactory(container, animeId)
+                )
+                AnimeDetailsScreen(vm, { navController.popBackStack() })
             }
         }
     }
