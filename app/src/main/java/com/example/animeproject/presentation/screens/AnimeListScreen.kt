@@ -10,18 +10,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.animeproject.domain.model.Anime
-import com.example.animeproject.presentation.viewmodel.AnimeViewModel
-import com.example.animeproject.presentation.viewmodel.UiState
+import com.example.animeproject.presentation.viewmodel.AnimeListViewModel
+import com.example.animeproject.presentation.viewmodel.AnimeViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeListScreen(
-    viewModel: AnimeViewModel,
-    onAnimeClick: (String) -> Unit
+    onAnimeClick: (String) -> Unit,
+    factory: AnimeViewModelFactory,
+    viewModel: AnimeListViewModel = viewModel(factory = factory)
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val animeList by viewModel.animeList.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     Scaffold(
         topBar = {
@@ -29,28 +33,28 @@ fun AnimeListScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            when (val state = uiState) {
-                is UiState.Loading -> {
+            when {
+                isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                is UiState.Error -> {
+                error != null -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center).padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Ошибка: ${state.message}", color = MaterialTheme.colorScheme.error)
+                        Text(text = "Ошибка: $error", color = MaterialTheme.colorScheme.error)
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(onClick = { viewModel.loadAnimeList("cowboy") }) {
                             Text("Попробовать снова")
                         }
                     }
                 }
-                is UiState.Success -> {
+                else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(state.data) { anime ->
+                        items(animeList) { anime ->
                             AnimeListItem(anime = anime, onClick = { onAnimeClick(anime.id) })
                         }
                     }
