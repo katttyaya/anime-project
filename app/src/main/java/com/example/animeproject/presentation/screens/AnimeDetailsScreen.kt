@@ -1,6 +1,5 @@
-package com.example.animeproject.ui.screens
+package com.example.animeproject.presentation.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,9 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.animeproject.data.Anime
+import coil.compose.AsyncImage
+import com.example.animeproject.domain.model.Anime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,8 +43,8 @@ fun AnimeDetailsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            Image(
-                painter = painterResource(id = anime.posterResId),
+            AsyncImage(
+                model = anime.posterUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
