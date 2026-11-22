@@ -11,20 +11,22 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.animeproject.data.network.RetrofitClient
+import com.example.animeproject.data.repository.AnimeRepositoryImpl
 import com.example.animeproject.presentation.screens.AnimeDetailsScreen
 import com.example.animeproject.presentation.screens.AnimeListScreen
 import com.example.animeproject.presentation.screens.ProfileScreen
-import com.example.animeproject.presentation.viewmodel.AnimeViewModel
+import com.example.animeproject.presentation.viewmodel.AnimeViewModelFactory
 import com.example.animeproject.ui.theme.AnimeProjectTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        RetrofitClient.init(this)
         setContent {
             AnimeProjectTheme {
                 Surface(
@@ -41,8 +43,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val navController = rememberNavController()
-    val viewModel: AnimeViewModel = viewModel()
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    val factory = remember {
+        val repository = AnimeRepositoryImpl(RetrofitClient.api)
+        AnimeViewModelFactory(repository)
+    }
 
     Scaffold(
         bottomBar = {
@@ -79,7 +85,7 @@ fun MainApp() {
         ) {
             composable("list") {
                 AnimeListScreen(
-                    viewModel = viewModel,
+                    factory = factory,
                     onAnimeClick = { animeId ->
                         navController.navigate("details/$animeId")
                     }
@@ -89,12 +95,9 @@ fun MainApp() {
             composable(
                 route = "details/{animeId}",
                 arguments = listOf(navArgument("animeId") { defaultValue = "" })
-            ) { backStackEntry ->
-                val animeId = backStackEntry.arguments?.getString("animeId") ?: ""
-                val anime = viewModel.getAnimeById(animeId)
-
+            ) {
                 AnimeDetailsScreen(
-                    anime = anime,
+                    factory = factory,
                     onBackClick = { navController.popBackStack() }
                 )
             }

@@ -7,6 +7,7 @@ import com.example.animeproject.domain.repository.AnimeRepository
 class AnimeRepositoryImpl(
     private val apiService: AnimeApiService
 ) : AnimeRepository {
+
     override suspend fun getAnimeList(query: String): List<Anime> {
         val response = apiService.getAnimeList(searchQuery = query, limit = 15)
         return response.data.map { dto ->
@@ -19,6 +20,15 @@ class AnimeRepositoryImpl(
                 status = dto.attributes.status,
                 posterUrl = dto.attributes.posterImage?.medium ?: ""
             )
+        }
+    }
+
+    override suspend fun getAnimeById(id: String): Anime? {
+        return try {
+            val list = getAnimeList(id)
+            list.find { it.id == id }
+        } catch (e: Exception) {
+            null
         }
     }
 }
