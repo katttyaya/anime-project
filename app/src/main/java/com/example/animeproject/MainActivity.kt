@@ -22,6 +22,8 @@ import com.example.animeproject.data.network.RetrofitClient
 import com.example.animeproject.presentation.screens.*
 import com.example.animeproject.presentation.viewmodel.*
 import com.example.animeproject.ui.theme.AnimeProjectTheme
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,7 +114,37 @@ fun MainApp() {
                 SettingsScreen(vm, { navController.popBackStack() })
             }
             composable("profile") {
-                ProfileScreen()
+                val vm: ProfileViewModel = viewModel(factory = factory)
+                val profile by vm.profile.collectAsState()
+                ProfileScreen(
+                    viewModel = vm,
+                    onEditClick = { navController.navigate("edit_profile") },
+                    onResumeClick = {
+                        if (profile.resumeUrl.isNotBlank()) {
+                            val encoded = java.net.URLEncoder.encode(profile.resumeUrl, "UTF-8")
+                            navController.navigate("pdf_viewer/$encoded")
+                        }
+                    }
+                )
+            }
+            composable("edit_profile") {
+                val vm: EditProfileViewModel = viewModel(factory = factory)
+                EditProfileScreen(
+                    viewModel = vm,
+                    onDone = { navController.popBackStack() },
+                    onCancel = { navController.popBackStack() }
+                )
+            }
+            composable(
+                "pdf_viewer/{pdfUrl}",
+                arguments = listOf(navArgument("pdfUrl") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedUrl = backStackEntry.arguments?.getString("pdfUrl") ?: ""
+                val pdfUrl = URLDecoder.decode(encodedUrl, "UTF-8")
+                PdfViewerScreen(
+                    pdfUrl = pdfUrl,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(
                 "details/{animeId}",

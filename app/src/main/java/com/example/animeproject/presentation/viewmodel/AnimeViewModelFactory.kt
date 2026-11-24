@@ -31,6 +31,12 @@ class AnimeViewModelFactory(
         modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
             SettingsViewModel(container.settingsDataStore, container.filterCache) as T
 
+        modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
+            ProfileViewModel(container.profileRepository) as T
+
+        modelClass.isAssignableFrom(EditProfileViewModel::class.java) ->
+            EditProfileViewModel(container.profileRepository) as T
+
         else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

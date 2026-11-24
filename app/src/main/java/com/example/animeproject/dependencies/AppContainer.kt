@@ -8,6 +8,8 @@ import com.example.animeproject.data.network.RetrofitClient
 import com.example.animeproject.data.repository.AnimeRepositoryImpl
 import com.example.animeproject.domain.repository.AnimeRepository
 import com.example.animeproject.domain.usecase.GetAnimeListUseCase
+import com.example.animeproject.data.repository.ProfileRepositoryImpl
+import com.example.animeproject.domain.repository.ProfileRepository
 
 interface AppContainer {
     val settingsDataStore: SettingsDataStore
@@ -15,6 +17,7 @@ interface AppContainer {
     val animeDao: AnimeDao
     val animeRepository: AnimeRepository
     val getAnimeListUseCase: GetAnimeListUseCase
+    val profileRepository: ProfileRepository
 }
 
 class DefaultAppContainer(private val context: Context) : AppContainer {
@@ -32,5 +35,9 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val getAnimeListUseCase: GetAnimeListUseCase by lazy {
         GetAnimeListUseCase(animeRepository)
+    }
+
+    override val profileRepository: ProfileRepository by lazy {
+        ProfileRepositoryImpl(context)
     }
 }
