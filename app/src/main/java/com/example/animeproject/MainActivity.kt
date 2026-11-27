@@ -1,6 +1,8 @@
 package com.example.animeproject
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,15 +28,31 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         RetrofitClient.init(this)
+
+        // Обработка клика по уведомлению при холодном запуске
+        handleNotificationIntent(intent)
+
         setContent {
             AnimeProjectTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     MainApp()
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        if (intent?.action == "OPEN_APP_FROM_NOTIFICATION") {
+            Toast.makeText(this, "Напоминание о паре", Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -121,7 +139,7 @@ fun MainApp() {
                     onEditClick = { navController.navigate("edit_profile") },
                     onResumeClick = {
                         if (profile.resumeUrl.isNotBlank()) {
-                            val encoded = java.net.URLEncoder.encode(profile.resumeUrl, "UTF-8")
+                            val encoded = URLEncoder.encode(profile.resumeUrl, "UTF-8")
                             navController.navigate("pdf_viewer/$encoded")
                         }
                     }

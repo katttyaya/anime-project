@@ -26,8 +26,21 @@ class EditProfileViewModel(
     private val _resumeUrl = MutableStateFlow("")
     val resumeUrl: StateFlow<String> = _resumeUrl.asStateFlow()
 
+    private val _favoritePairTime = MutableStateFlow("")
+    val favoritePairTime: StateFlow<String> = _favoritePairTime.asStateFlow()
+
+    private val _timeError = MutableStateFlow<String?>(null)
+    val timeError: StateFlow<String?> = _timeError.asStateFlow()
+
     private val _hasChanges = MutableStateFlow(false)
     val hasChanges: StateFlow<Boolean> = _hasChanges.asStateFlow()
+
+    private val _isSaveEnabled = MutableStateFlow(true)
+    val isSaveEnabled: StateFlow<Boolean> = _isSaveEnabled.asStateFlow()
+
+    // Флаг: нужно ли отменить будильник (если время было очищено)
+    private val _shouldCancelAlarm = MutableStateFlow(false)
+    val shouldCancelAlarm: StateFlow<Boolean> = _shouldCancelAlarm.asStateFlow()
 
     init {
         loadProfile()
@@ -40,6 +53,9 @@ class EditProfileViewModel(
             _position.value = profile.position
             _avatarUri.value = profile.avatarUri
             _resumeUrl.value = profile.resumeUrl
+            _favoritePairTime.value = profile.favoritePairTime
+            _shouldCancelAlarm.value = false
+            validateTime(profile.favoritePairTime)
         }
     }
 
@@ -63,13 +79,51 @@ class EditProfileViewModel(
         _hasChanges.value = true
     }
 
+    fun onFavoritePairTimeChanged(time: String) {
+        _favoritePairTime.value = time
+        _hasChanges.value = true
+
+        if (time.isBlank() && _favoritePairTime.value.isNotBlank()) {
+            _shouldCancelAlarm.value = true
+        }
+
+        validateTime(time)
+    }
+
+    fun clearFavoritePairTime() {
+        _favoritePairTime.value = ""
+        _shouldCancelAlarm.value = true
+        _hasChanges.value = true
+        validateTime("")
+    }
+
+    private fun validateTime(time: String) {
+        if (time.isBlank()) {
+            _timeError.value = null
+            _isSaveEnabled.value = true
+            return
+        }
+
+        val regex = Regex("^([01]\\d|2[0-3]):[0-5]\\d$")
+        if (regex.matches(time)) {
+            _timeError.value = null
+            _isSaveEnabled.value = true
+        } else {
+            _timeError.value = "Некорректный формат времени"
+            _isSaveEnabled.value = false
+        }
+    }
+
     fun saveProfile(onSaved: () -> Unit) {
+        if (!_isSaveEnabled.value) return
+
         viewModelScope.launch {
             val profile = Profile(
                 fullName = _fullName.value,
                 position = _position.value,
                 avatarUri = _avatarUri.value,
-                resumeUrl = _resumeUrl.value
+                resumeUrl = _resumeUrl.value,
+                favoritePairTime = _favoritePairTime.value
             )
             profileRepository.saveProfile(profile)
             _hasChanges.value = false

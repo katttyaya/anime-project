@@ -18,6 +18,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
         private val POSITION = stringPreferencesKey("position")
         private val AVATAR_URI = stringPreferencesKey("avatar_uri")
         private val RESUME_URL = stringPreferencesKey("resume_url")
+        private val FAVORITE_PAIR_TIME = stringPreferencesKey("favorite_pair_time")
     }
 
     override fun getProfileFlow(): Flow<Profile> =
@@ -26,7 +27,8 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
                 fullName = prefs[FULL_NAME] ?: "",
                 position = prefs[POSITION] ?: "",
                 avatarUri = prefs[AVATAR_URI] ?: "",
-                resumeUrl = prefs[RESUME_URL] ?: ""
+                resumeUrl = prefs[RESUME_URL] ?: "",
+                favoritePairTime = prefs[FAVORITE_PAIR_TIME] ?: ""
             )
         }
 
@@ -36,6 +38,7 @@ class ProfileRepositoryImpl(private val context: Context) : ProfileRepository {
             prefs[POSITION] = profile.position
             prefs[AVATAR_URI] = profile.avatarUri
             prefs[RESUME_URL] = profile.resumeUrl
+            prefs[FAVORITE_PAIR_TIME] = profile.favoritePairTime
         }
     }
 
